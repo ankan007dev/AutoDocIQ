@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoDocIQ — Autonomous Document Intelligence System</title>
+  <meta name="description" content="AI-powered document intelligence system using LangChain agents, FastAPI, Pydantic, and ChromaDB for multi-agent workflows." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="style.css?v=1.0.1" />
+</head>
+<body>
+
+  
+  <div class="glow-bg glow-primary"></div>
+  <div class="glow-bg glow-secondary"></div>
+
+  <div class="app-container">
+    
+    
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div class="brand">
+            <i class="bi bi-cpu-fill brand-icon"></i>
+            <div>
+              <h1>AutoDocIQ</h1>
+              <span class="sub-brand">Agentic Document AI</span>
+            </div>
+          </div>
+          <button class="btn-settings-toggle" id="btnSettingsToggle" title="System Settings">
+            <i class="bi bi-gear-fill"></i>
+          </button>
+        </div>
+        <div class="status-indicator" id="statusIndicator" style="cursor: pointer;" title="Click to open settings">
+          <span class="pulse-dot green"></span>
+          <span class="status-text mono">Checking...</span>
+        </div>
+      </div>
+
+      
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept=".txt,.pdf,.md,.csv,.json" style="display: none;" />
+        <i class="bi bi-cloud-arrow-up upload-icon"></i>
+        <h3>Upload Document</h3>
+        <p>PDF, TXT, MD, CSV, JSON</p>
+        <button class="btn btn-outline btn-sm" id="uploadBtn">Choose File</button>
+        <div class="upload-progress-bar" id="uploadProgress" style="display: none;">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+
+      
+      <div class="doc-section">
+        <div class="section-title">
+          <span class="mono">// DOCUMENTS</span>
+          <span class="badge" id="docCount">0</span>
+        </div>
+        <div class="doc-list" id="docList">
+          
+          <div class="doc-list-empty">
+            <i class="bi bi-folder-x"></i>
+            <p>No documents processed yet</p>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="sidebar-footer mono">
+        <div>STACK: FastAPI + LangChain</div>
+        <div>VDB: ChromaDB Vectorstore</div>
+      </div>
+    </aside>
+
+    
+    <main class="main-content">
+      
+      
+      <header class="main-header">
+        <div class="header-info">
+          <div class="doc-type-icon" id="headerDocIcon">
+            <i class="bi bi-file-text-fill"></i>
+          </div>
+          <div>
+            <h2 id="activeDocName">Select a document from the left</h2>
+            <div class="meta-row mono" id="activeDocMeta" style="display: none;">
+              <span id="metaId">ID: </span>
+              <span class="meta-divider">|</span>
+              <span id="metaChunks"><i class="bi bi-grid-3x3-gap"></i> Chunks: 0</span>
+              <span class="meta-divider">|</span>
+              <span id="metaType"><i class="bi bi-filetype-txt"></i> TXT</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-actions" id="headerActions" style="display: none;">
+          <button class="btn btn-outline btn-sm" id="btnExportJson">
+            <i class="bi bi-file-earmark-arrow-down-fill"></i> Export JSON
+          </button>
+          <button class="btn btn-outline btn-sm" id="btnExportCsv">
+            <i class="bi bi-file-earmark-spreadsheet-fill"></i> Export CSV
+          </button>
+        </div>
+      </header>
+
+      
+      <div class="dashboard-wrapper" id="dashboardWrapper" style="display: none;">
+        
+        
+        <nav class="tab-nav">
+          <button class="tab-btn active" data-tab="tab-workspace" id="btnTabWorkspace">
+            <i class="bi bi-activity"></i> Agent Workspace
+          </button>
+          <button class="tab-btn" data-tab="tab-entities" id="btnTabEntities">
+            <i class="bi bi-tags-fill"></i> Structured Entities
+          </button>
+          <button class="tab-btn" data-tab="tab-clauses" id="btnTabClauses">
+            <i class="bi bi-shield-fill-check"></i> Clause Classifier
+          </button>
+          <button class="tab-btn" data-tab="tab-qa" id="btnTabQA">
+            <i class="bi bi-chat-left-text-fill"></i> Semantic Q&amp;A
+          </button>
+        </nav>
+
+        
+        <div class="summary-banner" id="summaryBanner">
+          <div class="summary-icon"><i class="bi bi-info-circle-fill"></i></div>
+          <p id="summaryText">Generating document intelligence overview...</p>
+        </div>
+
+        
+        <div class="tab-content-container">
+
+          
+          <div class="tab-pane active" id="tab-workspace">
+            <div class="workspace-grid">
+              
+              
+              <div class="card agent-flow-card">
+                <div class="card-header">
+                  <h3>Agent Pipeline Architecture</h3>
+                  <span class="badge badge-success mono">ACTIVE</span>
+                </div>
+                <div class="card-body flow-wrapper">
+                  
+                  
+                  <div class="flow-nodes">
+                    
+                    <div class="flow-node active" id="node-router">
+                      <div class="node-icon"><i class="bi bi-signpost-split-fill"></i></div>
+                      <div class="node-info">
+                        <h4>Router Agent</h4>
+                        <p class="mono">Orchestrates workflows</p>
+                      </div>
+                    </div>
+
+                    <div class="flow-arrow"><i class="bi bi-arrow-down"></i></div>
+
+                    <div class="flow-row-nodes">
+                      
+                      <div class="flow-node" id="node-extract">
+                        <div class="node-icon"><i class="bi bi-braces"></i></div>
+                        <div class="node-info">
+                          <h4>Extraction Agent</h4>
+                          <p class="mono">Pydantic validation</p>
+                        </div>
+                      </div>
+
+                      <div class="flow-node" id="node-classify">
+                        <div class="node-icon"><i class="bi bi-shield-check"></i></div>
+                        <div class="node-info">
+                          <h4>Classification Agent</h4>
+                          <p class="mono">Clause categorization</p>
+                        </div>
+                      </div>
+
+                      <div class="flow-node" id="node-qa">
+                        <div class="node-icon"><i class="bi bi-database-fill-gear"></i></div>
+                        <div class="node-info">
+                          <h4>Semantic Q&amp;A Agent</h4>
+                          <p class="mono">ChromaDB semantic RAG</p>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+
+              
+              <div class="card terminal-card">
+                <div class="card-header">
+                  <div class="terminal-dots"><span></span><span></span><span></span></div>
+                  <span class="terminal-title mono">langchain_orchestrator.log</span>
+                  <button class="btn-terminal-clear" id="btnClearLogs" title="Clear Logs"><i class="bi bi-trash"></i></button>
+                </div>
+                <div class="terminal-body mono" id="terminalLogs">
+                  
+                  <div class="log-line text-muted">[System] Waiting for next document task...</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          
+          <div class="tab-pane" id="tab-entities">
+            <div class="entities-grid">
+              
+              
+              <div class="card entities-form-card">
+                <div class="card-header">
+                  <h3>Pydantic Validated Metadata</h3>
+                  <span class="badge badge-primary mono" id="entitySchemaLabel">ContractEntitySchema</span>
+                </div>
+                <div class="card-body">
+                  <div class="entity-fields" id="entityFieldsContainer">
+                    
+                  </div>
+                </div>
+              </div>
+
+              
+              <div class="card entities-json-card">
+                <div class="card-header">
+                  <h3>Raw Schema Output</h3>
+                  <span class="mono font-sm">JSON compliance</span>
+                </div>
+                <div class="card-body json-body">
+                  <pre><code class="mono" id="rawJsonCode">{}</code></pre>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          
+          <div class="tab-pane" id="tab-clauses">
+            <div class="clauses-header">
+              <h3>Legal Clause Risk Analysis</h3>
+              <p>Isolated document statements analyzed for risk parameters and regulatory compliance.</p>
+            </div>
+            
+            <div class="clauses-list" id="clausesContainer">
+              
+            </div>
+          </div>
+
+          
+          <div class="tab-pane" id="tab-qa">
+            <div class="qa-grid">
+              
+              
+              <div class="card chat-card">
+                <div class="card-header">
+                  <h3>Semantic Chat Core</h3>
+                  <span class="mono font-sm"><i class="bi bi-shield-lock-fill"></i> Offline Sandbox</span>
+                </div>
+                <div class="card-body chat-body" id="chatHistory">
+                  <div class="chat-message agent">
+                    <div class="message-content">
+                      <p>Hello! I am the **Semantic Q&amp;A Agent**. I have indexed this document in **ChromaDB**. Ask me any question, and I'll perform semantic retrieval to formulate a context-aware response.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="chat-footer">
+                  <form id="chatForm">
+                    <input type="text" id="chatInput" placeholder="Ask a question about this document..." autocomplete="off" required />
+                    <button type="submit" class="btn btn-primary" id="btnSendChat">
+                      <i class="bi bi-send-fill"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              
+              <div class="card citations-card">
+                <div class="card-header">
+                  <h3>Retrieved Context Chunks</h3>
+                  <span class="mono font-sm" id="citationCount">0 Chunks Selected</span>
+                </div>
+                <div class="card-body citations-body" id="citationsContainer">
+                  <div class="citations-empty">
+                    <i class="bi bi-database-fill-exclamation"></i>
+                    <p>No queries executed yet. Submit a message in the chat box to view semantic vector search contexts.</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div> 
+
+      </div>
+
+      
+      <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-inner">
+          <i class="bi bi-cpu welcome-logo"></i>
+          <h2>Welcome to AutoDocIQ</h2>
+          <p>An autonomous agent pipeline designed to extract metadata, classify legal risk, and answer user queries over contracts and invoice documents using FastAPI, Pydantic, and ChromaDB.</p>
+          <div class="steps-guide">
+            <div class="step-card">
+              <span class="step-num">1</span>
+              <h4>Select or Upload</h4>
+              <p>Load one of our pre-seeded samples (NDA or Invoice) or upload a custom file.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">2</span>
+              <h4>Trace Agents</h4>
+              <p>Watch the LangChain agent orchestrator route requests and print reasoning logic.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">3</span>
+              <h4>Inspect &amp; Query</h4>
+              <p>Analyze Pydantic extractions, classified clauses, and run semantic Q&amp;A.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="bi bi-sliders2-vertical"></i> System Configuration</h3>
+        <button class="modal-close" id="btnSettingsClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        
+        <div class="settings-section">
+          <label class="settings-label">Orchestration Mode</label>
+          <div class="mode-toggle-group">
+            <label class="mode-toggle-btn" id="modeLiveLabel">
+              <input type="radio" name="orchestrationMode" id="modeLive" value="live" />
+              <div class="mode-btn-content">
+                <i class="bi bi-wifi"></i>
+                <div>
+                  <strong>Online Mode (Live AI)</strong>
+                  <span>GPT-4o + ChromaDB Vector Store</span>
+                </div>
+              </div>
+            </label>
+            <label class="mode-toggle-btn" id="modeMockLabel">
+              <input type="radio" name="orchestrationMode" id="modeMock" value="mock" />
+              <div class="mode-btn-content">
+                <i class="bi bi-wifi-off"></i>
+                <div>
+                  <strong>Offline Mode (Local Heuristics)</strong>
+                  <span>Regex extraction & InMemory Store</span>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        
+        <div class="settings-section">
+          <label class="settings-label" for="inputApiKey">OpenAI API Key</label>
+          <div class="api-key-input-wrapper">
+            <input type="password" id="inputApiKey" placeholder="sk-..." class="form-input" />
+            <button class="btn-toggle-visibility" id="btnToggleKeyVisibility" type="button" title="Toggle visibility">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          <span class="settings-help">The API Key is securely held in the FastAPI server memory during runtime.</span>
+        </div>
+
+        
+        <div class="settings-section">
+          <label class="settings-label">System Health Status</label>
+          <div class="status-grid">
+            <div class="status-card-small">
+              <span class="status-label-small">API Key Status</span>
+              <span class="status-value-small" id="statusApiKeyVal">
+                <span class="dot-indicator red"></span> Missing
+              </span>
+            </div>
+            <div class="status-card-small">
+              <span class="status-label-small">ChromaDB Store</span>
+              <span class="status-value-small" id="statusChromaVal">
+                <span class="dot-indicator red"></span> Unavailable
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnSettingsCancel">Cancel</button>
+        <button class="btn btn-primary" id="btnSettingsSave">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal-overlay" id="deleteConfirmModal">
+    <div class="modal-card confirmation-card">
+      <div class="modal-header confirmation-header">
+        <h3><i class="bi bi-exclamation-triangle-fill warning-color"></i> Delete Document</h3>
+        <button class="modal-close" id="btnDeleteConfirmClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirmation-text">Are you sure you want to permanently delete the document <strong id="deleteTargetName" class="text-primary"></strong>?</p>
+        <p class="confirmation-warning"><i class="bi bi-info-circle"></i> This will delete the raw text content, system metadata records, and clear the semantic vector store embeddings in ChromaDB. This operation is irreversible.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnDeleteConfirmCancel">Cancel</button>
+        <button class="btn btn-danger" id="btnDeleteConfirmProceed">
+          <i class="bi bi-trash-fill"></i> Delete Permanently
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=1.0.1"></script>
+</body>
+</html>
+

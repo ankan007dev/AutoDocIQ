@@ -1,0 +1,30 @@
+# Python bytecode & cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+active_env/
+*.env
+
+# Application directories
+data/
+
+
+# Logs & temp files
+out.txt
+*.log
+
+# IDE & system metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
